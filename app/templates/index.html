@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %} - Home{% endblock %}
+{% block content %}
+{% if not current_user.is_authenticated() %}
+     <p>You are not logged in. Please <a href="/login">log in</a> or <a href="/register">sign up</a>. Its Free!</p>
+{% else %}
+	<h1>What is this?</h1>
+	<p>This is a simple web tracking framework written in Flask and jQuery. Simply register a site and then embed the jQuery snippet in your website and then watch as it records visits to your site!</p>
+	<p><a href="https://github.com/davidbenhaim/flask-tracker">Github code</a>
+    <h1>How to Use (requires jQuery)</h1>
+    <section id="open-source">
+        <h3>jQuery Plugin</h3>
+        <article>
+        	<h4>Simply include this jQuery plugin</h4>
+            <pre><code class="javascript">(function( $ ) {
+  $.fn.davidTracker = function(options) {
+    var tracker = {};
+    tracker.settings = $.extend({
+      'visitor' : 'Anon User',
+      'event' : 'Started',
+      'data'  : 'None'
+      }, options);
+    $.ajax('http://flasktracking.herokuapp.com/visit/__site.id__/visited?event='+tracker.settings.event+'&data='+tracker.settings.data+'&visitor='+tracker.settings.visitor);
+    $('.trackable').each(function() {
+      $(this).click(function(){
+          $.ajax('http://flasktracking.herokuapp.com/visit/__site.id__/visited?event='+$(this).data('event')+'&data='+$(this).data('data')+'&visitor='+tracker.settings.visitor);
+        });
+    })
+    $(document).unload(function() {
+      $.ajax('http://flasktracking.herokuapp.com/visit/__site.id__/visited?event=Unload&data=None&visitor='+tracker.settings.visitor);
+    });
+    return tracker;
+  };
+})( jQuery );</code></pre>
+    	<h4>Then instantiate a tracker object in your .ready() call. Make sure you feed it the right options.</h4>
+    	<pre><code class="javascript">$(document).ready(function() {
+      tracker = $().davidTracker({'visitor':'Visitor_name_goes_here', 'event':'default event','data':'any extra data'});
+    });</code></pre>
+    	<h4>If you have a single page app and you need to track events such as clicks add a '.trackable' class</h4>
+    	<pre><code class="html">&lt;a class=&quot;btn btn-primary trackable&quot; data-event=&quot;You Clicked the Demo Button!&quot; data-data=&quot;This is extra data&quot;&gt;Click Me!&lt;/a&gt;</code></pre>
+    	<a class="btn btn-primary trackable" data-event="You Clicked the Demo Button!" data-data="This is extra data">Click Me!</a>
+        </article>
+    </section>
+    <br>
+    <br>
+    <br>
+    <script type="text/javascript">
+    (function( $ ) {
+      $.fn.davidTracker = function(options) {
+        var tracker = {};
+        tracker.settings = $.extend({
+          'visitor' : 'Anon User',
+          'event' : 'Started',
+          'data'  : 'None'
+            }, options);
+        $('.trackable').each(function() {
+            $(this).click(function(){
+                $.ajax('http://flasktracking.herokuapp.com/visit/1/visited?event='+$(this).data('event')+'&data='+$(this).data('data')+'&visitor='+tracker.settings.visitor);
+            });
+        })
+        $(document).unload(function() {
+            $.ajax('http://flasktracking.herokuapp.com/visit/1/visited?event=Unload&data=None&visitor='+tracker.settings.visitor);
+        });
+        return tracker;
+      };
+      tracker = $().davidTracker({'visitor':'davidbenhaim', 'event':'default event','data':'any extra data'});
+    })( jQuery );
+    </script>
+{% endif %}
+{% endblock %}

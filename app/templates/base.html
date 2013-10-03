@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% block head %}
+    <title>MyFlaskTracker{% block title %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta name="author" content="">
+    <meta charset="utf-8">
+
+    <!-- <link href="http://twitter.github.com/bootstrap/assets/css/bootstrap.css" rel="stylesheet"> -->
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="http://bootswatch.com/cosmo/bootstrap.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">
+    <style> 
+      body { padding-top: 60px; } 
+
+      .accordian-toggle a:hover {
+        text-decoration: none !important;
+      } 
+      .collapsed .icon-collapse-alt {
+        display: none;
+      }
+
+      .collapsed .icon-expand-alt {
+        display: inline !important;
+      }
+
+      .icon-expand-alt {
+        display: none !important;
+      }
+    </style>
+
+    <!-- SUPPORT FOR IE6-8 OF HTML5 ELEMENTS -->
+    <!--[if lt IE 9]>
+          <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+      <![endif]-->
+
+    <link rel="shortcut icon" href="{{ url_for('static', filename='ico/favicon.ico') }}">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+    {% endblock %}
+  </head>
+
+  <body>
+
+    {% block navbar %}
+    <div class="navbar navbar-fixed-top">
+      <div class="container">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="/">My Tracker</a>
+        <div class="nav-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/">Home</a></li>
+            <li><a href="/sites">Sites</a></li>
+          </ul>
+          <ul class="nav navbar-nav pull-right">
+            {% if current_user.is_authenticated() %}
+            <li class="pull-right"><p style="color:white;" class="navbar-text pull-right">Signed in as {{ current_user.name }} (<a href="/logout">logout?</a>)</p></li>
+            {% else %}
+            <li class="pull-right"><a href="/login">Log In</a></li>
+            <li class="pull-right"><a href="/register">Register</a></li>
+            {% endif %}
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    {% endblock %}
+
+    <div class="container page">
+        {% for message in get_flashed_messages() %}
+          <div class="flashed-message alert alert-success">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{message}}
+            <script>
+              $(".flashed-message").alert();
+            </script>
+          </div>
+        {% endfor %}
+        <div class="content">
+          {% block content %}
+          {% endblock %}
+        </div>
+
+        <hr>
+
+        {% block footer %}
+        <footer class="footer">
+            <p>&copy; My Tracker</p>
+        </footer>
+        {% endblock %}
+
+    </div>
+    {% block js_footer %}
+      <script src="http://twitter.github.com/bootstrap/assets/js/bootstrap.js"></script>
+    {% endblock %}
+  </body>
+</html>
