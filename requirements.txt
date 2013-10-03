@@ -15,3 +15,5 @@ psycopg2==2.5.1
 requests==1.2.3
 gunicorn==17.5
 wsgiref==0.1.2
+Flask-Testing==0.4
+coverage==3.6
