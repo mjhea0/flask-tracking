@@ -29,6 +29,8 @@ class BaseConfiguration(object):
 class TestConfiguration(BaseConfiguration):
     TESTING = True
 
+    CSRF_ENABLED = False
+
     DATABASE = 'tests.db'
     DATABASE_PATH = os.path.join(_basedir, DATABASE)
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'  # + DATABASE_PATH

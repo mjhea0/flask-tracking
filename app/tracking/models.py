@@ -37,6 +37,7 @@ class Visit(CRUDMixin, db.Model):
         self.url = url
         self.ip_address = ip_address
         self.location_full = location_full
+        self.location = location
 
     def __repr__(self):
         return '<Visit %r - %r>' % (self.url, self.date)
