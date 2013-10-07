@@ -24,3 +24,11 @@ class UserViewsTests(BaseTestCase):
             self.client.get("/logout/")
 
             self.assertTrue(current_user.is_anonymous())
+
+    def test_invalid_password_is_rejected(self):
+        User.create(name="Joe", email="joe@joes.com", password="12345")
+
+        with self.client:
+            self.client.post("/login/", data={"name": "Joe", "password": "****"})
+
+            self.assertTrue(current_user.is_anonymous())

@@ -5,7 +5,7 @@ from flask.ext.login import LoginManager
 import os
 
 app = Flask(__name__) #create our application object
-app.config.from_object('config.BaseConfiguration') #load our local config file
+app.config.from_object('config.DebugConfiguration') #load our local config file
 
 heroku = Heroku(app) #create a heroku config object from our app object
 
