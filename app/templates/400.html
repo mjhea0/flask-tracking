@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %} - Something's missing{% endblock %}
+{% block content %}
+  <h1>Something was missing from your request</h1>
+  <p>Please check your input and try again</p>
+  <p>Alternately, return <a href="{{ url_for('index') }}">home</a></p>
+{% endblock %}

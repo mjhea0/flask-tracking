@@ -36,6 +36,22 @@ def favicon():
 def page_not_found(e):
     return render_template('404.html'), 404
 
+
+@app.errorhandler(400)
+def key_error(e):
+    return render_template('400.html'), 400
+
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template('generic.html'), 500
+
+
+@app.errorhandler(Exception)
+def unhandled_exception(e):
+    return render_template('generic.html'), 500
+
+
 @app.route("/")
 def index():
     return render_template('index.html')
