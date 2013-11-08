@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% import "helpers/forms.html" as forms %}
+{% block title %}Validation Error - Flask Tracking{% endblock %}
+{% block content %}
+{{ super() }}
+<p>An error occured, please correct any mistakes and try again.</p>
+<ul>
+{% for field in form if field.errors %}
+<li>{{ field.label }}:
+    <ul>
+    {% for error in field.errors %}
+    <li>{{ error }}</li>
+    {% endfor %}
+    </ul>
+</li>
+{% endfor %}
+</ul>
+<form method="POST">
+<fieldset>
+<legend>Data</legend>
+{{ forms.render(form) }}
+<p><input type="Submit" value="Save Data"></p>
+</fieldset>
+</form>
+{% endblock content %}

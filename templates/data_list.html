@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% import "helpers/tables.html" as tables %}
+{% block title %}View {{type}}{% endblock %}
+{% block content %}
+{{ super() }}
+<table>
+{{ tables.render(data) }}
+</table>
+{% endblock content %}

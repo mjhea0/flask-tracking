@@ -1,0 +1,29 @@
+{% macro render(data, headers=true) %}
+{% for row in data %}
+    {% set is_header_row = headers and loop.index == 1 %}
+    {{ render_header(row) if is_header_row }}
+    {% if (not headers and loop.index == 1) or (headers and loop.index == 2) %}
+    <tbody>
+    {% endif %}
+    {{ render_row(row) if not is_header_row }}
+{% endfor %}
+</tbody>
+{% endmacro %}
+
+{% macro render_row(row) %}
+    <tr>
+    {% for cell in row %}
+        <td>{{ cell }}</td>
+    {% endfor %}
+    </tr>
+{% endmacro %}
+
+{% macro render_header(row) %}
+<thead>
+    <tr>
+    {% for cell in row %}
+        <th>{{ cell }}</th>
+    {% endfor %}
+    </tr>
+</thead>
+{% endmacro %}
