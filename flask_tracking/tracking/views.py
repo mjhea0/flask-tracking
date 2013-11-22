@@ -2,7 +2,7 @@ from flask import Blueprint, flash, Markup, redirect, render_template, url_for
 
 from .forms import SiteForm, VisitForm
 from .models import Site, Visit
-from flask_tracking.data import db, query_to_list
+from flask_tracking.data import query_to_list
 
 
 tracking = Blueprint("tracking", __name__)
@@ -21,10 +21,7 @@ def index():
 def add_site():
     form = SiteForm()
     if form.validate_on_submit():
-        site = Site()
-        form.populate_obj(site)
-        db.session.add(site)
-        db.session.commit()
+        Site.create(**form.data)
         flash("Added site")
         return redirect(url_for(".index"))
 
@@ -55,11 +52,8 @@ def add_visit(site_id=None):
         form = VisitForm(csrf_enabled=False, site=site)
 
     if form.validate_on_submit():
-        visit = Visit()
-        form.populate_obj(visit)
+        visit = Visit.create(**form.data)
         visit.site_id = form.site.data.id
-        db.session.add(visit)
-        db.session.commit()
         flash("Added visit for site {}".format(form.site.data.base_url))
         return redirect(url_for(".index"))
 

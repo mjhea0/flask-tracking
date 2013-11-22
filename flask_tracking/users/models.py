@@ -4,12 +4,12 @@ from backports.pbkdf2 import pbkdf2_hmac, compare_digest
 from flask.ext.login import UserMixin
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from flask_tracking.data import db
+from flask_tracking.data import CRUDMixin, db
 
 
-class User(UserMixin, db.Model):
+class User(UserMixin, CRUDMixin, db.Model):
     __tablename__ = 'users_user'
-    id = db.Column(db.Integer, primary_key=True)
+
     name = db.Column(db.String(50))
     email = db.Column(db.String(120), unique=True)
     _password = db.Column(db.LargeBinary(120))

@@ -1,10 +1,9 @@
-from flask_tracking.data import db
+from flask_tracking.data import CRUDMixin, db
 
 
-class Site(db.Model):
+class Site(CRUDMixin, db.Model):
     __tablename__ = 'tracking_site'
 
-    id = db.Column(db.Integer, primary_key=True)
     base_url = db.Column(db.String)
     visits = db.relationship('Visit', backref='site', lazy='select')
     user_id = db.Column(db.Integer, db.ForeignKey('users_user.id'))
@@ -16,10 +15,9 @@ class Site(db.Model):
         return self.base_url
 
 
-class Visit(db.Model):
+class Visit(CRUDMixin, db.Model):
     __tablename__ = 'tracking_visit'
 
-    id = db.Column(db.Integer, primary_key=True)
     browser = db.Column(db.String)
     date = db.Column(db.DateTime)
     event = db.Column(db.String)

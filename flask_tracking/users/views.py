@@ -1,7 +1,6 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask.ext.login import login_required, login_user, logout_user
 
-from flask_tracking.data import db
 from .forms import LoginForm, RegistrationForm
 from .models import User
 
@@ -22,10 +21,7 @@ def login():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User()
-        form.populate_obj(user)
-        db.session.add(user)
-        db.session.commit()
+        user = User.create(**form.data)
         login_user(user)
         return redirect(url_for('tracking.index'))
     return render_template('users/register.html', form=form)
