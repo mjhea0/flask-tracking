@@ -1,7 +1,8 @@
 from flask import Blueprint, flash, Markup, redirect, render_template, url_for
 
 from .forms import SiteForm, VisitForm
-from .models import db, query_to_list, Site, Visit
+from .models import Site, Visit
+from flask_tracking.data import db, query_to_list
 
 
 tracking = Blueprint("tracking", __name__)

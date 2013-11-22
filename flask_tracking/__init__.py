@@ -1,7 +1,7 @@
 from flask import Flask
 
-from .models import db
-from .views import tracking
+from .data import db
+from .tracking.views import tracking
 
 app = Flask(__name__)
 app.config.from_object('config')
@@ -9,7 +9,7 @@ app.config.from_object('config')
 
 @app.context_processor
 def provide_constants():
-    return {"constants": {"TUTORIAL_PART": 1}}
+    return {"constants": {"TUTORIAL_PART": 2}}
 
 db.init_app(app)
 
