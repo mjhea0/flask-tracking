@@ -16,7 +16,6 @@ def provide_constants():
 db.init_app(app)
 
 login_manager.init_app(app)
-login_manager.login_view = "users.login"
 
 app.register_blueprint(tracking)
 app.register_blueprint(users)

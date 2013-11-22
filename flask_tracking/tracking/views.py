@@ -1,4 +1,5 @@
-from flask import Blueprint, flash, Markup, redirect, render_template, url_for
+from flask import abort, Blueprint, flash, Markup, redirect, render_template, url_for
+from flask.ext.login import current_user, login_required
 
 from .forms import SiteForm, VisitForm
 from .models import Site, Visit
@@ -18,10 +19,13 @@ def index():
 
 
 @tracking.route("/site", methods=("POST", ))
+@login_required
 def add_site():
     form = SiteForm()
     if form.validate_on_submit():
-        Site.create(**form.data)
+        site = Site.create(commit=False, **form.data)
+        site.owner = current_user
+        site.save()
         flash("Added site")
         return redirect(url_for(".index"))
 
@@ -29,8 +33,11 @@ def add_site():
 
 
 @tracking.route("/site/<int:site_id>")
+@login_required
 def view_site_visits(site_id=None):
     site = Site.query.get_or_404(site_id)
+    if not site.user_id == current_user.id:
+        abort(401)
     query = Visit.query.filter(Visit.site_id == site_id)
     data = query_to_list(query)
     title = "visits for {}".format(site.base_url)
@@ -61,8 +68,9 @@ def add_visit(site_id=None):
 
 
 @tracking.route("/sites")
+@login_required
 def view_sites():
-    query = Site.query.filter(Site.id >= 0)
+    query = Site.query.filter(Site.user_id == current_user.id)
     data = query_to_list(query)
 
     # The header row should not be linked
