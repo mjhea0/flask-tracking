@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% import "helpers/forms.html" as forms %}
+{% block title %}Log into Flask Tracking!{% endblock %}
+{% block content %}
+{{super()}}
+<form action="{{url_for('users.login')}}" method="POST">
+{{ forms.render(form) }}
+<p><input type="Submit" value="Sign In"></p>
+</form>
+{% endblock content %}

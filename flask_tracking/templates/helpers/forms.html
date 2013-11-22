@@ -2,7 +2,14 @@
 <dl>
 {% for field in form if field.type not in ["HiddenField", "CSRFTokenField"] %}
 <dt>{{ field.label }}</dt>
-<dd>{{ field }}</dd>
+<dd>{{ field }}
+{% if field.errors %}
+<ul class="errors">
+{% for error in field.errors %}
+<li>{{error}}</li>
+{% endfor %}
+</ul>
+{% endif %}</dd>
 {% endfor %}
 </dl>
 {{ form.hidden_tag() }}

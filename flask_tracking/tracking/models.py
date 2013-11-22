@@ -6,7 +6,8 @@ class Site(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     base_url = db.Column(db.String)
-    visits = db.relationship('Visit', backref='tracking_site', lazy='select')
+    visits = db.relationship('Visit', backref='site', lazy='select')
+    user_id = db.Column(db.Integer, db.ForeignKey('users_user.id'))
 
     def __repr__(self):
         return '<Site {:d} {}>'.format(self.id, self.base_url)
