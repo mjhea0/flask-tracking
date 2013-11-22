@@ -1,4 +1,4 @@
-from flask import abort, Blueprint, flash, jsonify, Markup, redirect, render_template, url_for
+from flask import abort, Blueprint, flash, jsonify, Markup, redirect, render_template, request, url_for
 from flask.ext.login import current_user, login_required
 
 from .forms import SiteForm, VisitForm
@@ -34,20 +34,30 @@ def view_site_visits(site_id=None):
     site = Site.query.get_or_404(site_id)
     if not site.user_id == current_user.id:
         abort(401)
+
     query = Visit.query.filter(Visit.site_id == site_id)
     data = query_to_list(query)
-    title = "visits for {}".format(site.base_url)
-    return render_template("data_list.html", data=data, title=title)
+    return render_template("tracking/site.html", visits=data, site=site)
 
 
 @tracking.route("/sites/<int:site_id>/visit", methods=("POST",))
 def add_visit(site_id=None):
     site = Site.query.get_or_404(site_id)
+
+    browser = request.headers.get('User-Agent')
+    url = request.url
+    ip_address = request.remote_addr
+
     # WTForms does not coerce obj or keyword arguments
     # (otherwise, we could just pass in `site=site_id`)
     # CSRF is disabled in this case because we will *want*
     # users to be able to hit the /site/:id endpoint from other sites.
-    form = VisitForm(csrf_enabled=False, site=site)
+    form = VisitForm(csrf_enabled=False,
+                     site=site,
+                     browser=browser,
+                     url=url,
+                     ip_address=ip_address,
+                     **request.values)
 
     if form.validate_on_submit():
         Visit.create(**form.data)

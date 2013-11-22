@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% import "helpers/tables.html" as tables %}
+{% block title %}View visits for {{ site.base_url }}{% endblock %}
+{% block content %}
+{{ super() }}
+<p>To track visits to this site, simple add the following snippet to the pages that you wish to track:</p>
+<code><pre>
+&lt;script>
+(function() {
+	var img = new Image();
+	img.src = "{{ url_for('tracking.add_visit', site_id=site.id, event='PageLoad', _external=true) }}";
+})();
+&lt;/script>
+&lt;noscript>
+&lt;img src="{{ url_for('tracking.add_visit', site_id=site.id, event='PageLoad', _external=true) }}" width="1" height="1" />
+&lt;/noscript>
+</pre></code>
+<h2>Visits for {{ site.base_url }}</h2>
+<table>
+{{ tables.render(visits) }}
+</table>
+{% endblock content %}

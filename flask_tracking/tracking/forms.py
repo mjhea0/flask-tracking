@@ -1,3 +1,5 @@
+from datetime import datetime as dt
+
 from flask.ext.wtf import Form
 from wtforms import fields
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
@@ -11,7 +13,7 @@ class SiteForm(Form):
 
 class VisitForm(Form):
     browser = fields.StringField()
-    date = fields.DateField()
+    date = fields.DateField(default=dt.now)
     event = fields.StringField()
     url = fields.StringField()
     ip_address = fields.StringField("IP Address")
