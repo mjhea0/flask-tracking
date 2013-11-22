@@ -1,4 +1,4 @@
-from flask import abort, Blueprint, flash, Markup, redirect, render_template, url_for
+from flask import abort, Blueprint, flash, jsonify, Markup, redirect, render_template, url_for
 from flask.ext.login import current_user, login_required
 
 from .forms import SiteForm, VisitForm
@@ -16,21 +16,19 @@ def index():
     return render_template("index.html")
 
 
-@tracking.route("/site", methods=("POST", ))
+@tracking.route("/sites", methods=("POST", ))
 @login_required
 def add_site():
     form = SiteForm()
     if form.validate_on_submit():
-        site = Site.create(commit=False, **form.data)
-        site.owner = current_user
-        site.save()
+        Site.create(owner=current_user, **form.data)
         flash("Added site")
         return redirect(url_for(".view_sites"))
 
     return render_template("validation_error.html", form=form)
 
 
-@tracking.route("/site/<int:site_id>")
+@tracking.route("/sites/<int:site_id>")
 @login_required
 def view_site_visits(site_id=None):
     site = Site.query.get_or_404(site_id)
@@ -42,27 +40,24 @@ def view_site_visits(site_id=None):
     return render_template("data_list.html", data=data, title=title)
 
 
-@tracking.route("/visit", methods=("POST", ))
-@tracking.route("/site/<int:site_id>/visit", methods=("POST",))
+@tracking.route("/sites/<int:site_id>/visit", methods=("POST",))
 def add_visit(site_id=None):
-    if site_id is None:
-        # This is only used by the visit_form on the index page.
-        form = VisitForm()
-    else:
-        site = Site.query.get_or_404(site_id)
-        # WTForms does not coerce obj or keyword arguments
-        # (otherwise, we could just pass in `site=site_id`)
-        # CSRF is disabled in this case because we will *want*
-        # users to be able to hit the /site/:id endpoint from other sites.
-        form = VisitForm(csrf_enabled=False, site=site)
+    site = Site.query.get_or_404(site_id)
+    # WTForms does not coerce obj or keyword arguments
+    # (otherwise, we could just pass in `site=site_id`)
+    # CSRF is disabled in this case because we will *want*
+    # users to be able to hit the /site/:id endpoint from other sites.
+    form = VisitForm(csrf_enabled=False, site=site)
 
     if form.validate_on_submit():
-        visit = Visit.create(**form.data)
-        visit.site_id = form.site.data.id
-        flash("Added visit for site {}".format(form.site.data.base_url))
-        return redirect(url_for(".index"))
+        Visit.create(**form.data)
+        # No need to send anything back to the client
+        # Just indicate sucess with the response code
+        # (204 is "I succeded, but I don't have anything
+        # to send to you right now.")
+        return '', 204
 
-    return render_template("validation_error.html", form=form)
+    return jsonify(error="Missing required data")
 
 
 @tracking.route("/sites")
@@ -72,12 +67,19 @@ def view_sites():
     data = query_to_list(query)
     form = SiteForm()
 
-    # The header row should not be linked
-    results = [next(data)]
-    for row in data:
-        row = [_make_link(cell) if i == 0 else cell
-               for i, cell in enumerate(row)]
-        results.append(row)
+    results = []
+
+    try:
+        # The header row should not be linked
+        results = [next(data)]
+        for row in data:
+            row = [_make_link(cell) if i == 0 else cell
+                   for i, cell in enumerate(row)]
+            results.append(row)
+    except StopIteration:
+        # This happens when a user has no sites registered yet
+        # Since it is expected, we ignore it and carry on.
+        pass
 
     return render_template("tracking/sites.html", sites=results, form=form)
 

@@ -1,4 +1,3 @@
-from flask.ext.login import current_user
 from flask.ext.wtf import Form
 from wtforms import fields
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
@@ -16,4 +15,4 @@ class VisitForm(Form):
     event = fields.StringField()
     url = fields.StringField()
     ip_address = fields.StringField("IP Address")
-    site = QuerySelectField(query_factory=lambda: Site.query.filter(Site.user_id == current_user.id))
+    site = QuerySelectField(query_factory=lambda: Site.query.all())
