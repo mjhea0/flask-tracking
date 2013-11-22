@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% import "helpers/forms.html" as forms %}
+{% import "helpers/tables.html" as tables %}
+{% block title %}Available Sites{% endblock %}
+{% block content %}
+{{super()}}
+<form action="{{url_for('tracking.add_site')}}" method="POST">
+<fieldset>
+<legend>Add A Site</legend>
+{{ forms.render(form) }}
+<p><input type="Submit" value="Add Site"></p>
+</fieldset>
+</form>
+<table>
+{{ tables.render(sites) }}
+</table>
+{% endblock content %}

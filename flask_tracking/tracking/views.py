@@ -11,11 +11,9 @@ tracking = Blueprint("tracking", __name__)
 
 @tracking.route("/")
 def index():
-    site_form = SiteForm()
-    visit_form = VisitForm()
-    return render_template("index.html",
-                           site_form=site_form,
-                           visit_form=visit_form)
+    if not current_user.is_anonymous():
+        return redirect(url_for(".view_sites"))
+    return render_template("index.html")
 
 
 @tracking.route("/site", methods=("POST", ))
@@ -27,7 +25,7 @@ def add_site():
         site.owner = current_user
         site.save()
         flash("Added site")
-        return redirect(url_for(".index"))
+        return redirect(url_for(".view_sites"))
 
     return render_template("validation_error.html", form=form)
 
@@ -72,6 +70,7 @@ def add_visit(site_id=None):
 def view_sites():
     query = Site.query.filter(Site.user_id == current_user.id)
     data = query_to_list(query)
+    form = SiteForm()
 
     # The header row should not be linked
     results = [next(data)]
@@ -80,7 +79,7 @@ def view_sites():
                for i, cell in enumerate(row)]
         results.append(row)
 
-    return render_template("data_list.html", data=results, title="Sites")
+    return render_template("tracking/sites.html", sites=results, form=form)
 
 
 _LINK = Markup('<a href="{url}">{name}</a>')

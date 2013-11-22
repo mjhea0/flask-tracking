@@ -1,22 +1,7 @@
 {% extends "layout.html" %}
-{% import "helpers/forms.html" as forms %}
 {% block title %}Welcome to Flask Tracking!{% endblock %}
 {% block content %}
 {{ super() }}
-<form action="/site" method="POST">
-<fieldset>
-<legend>Add A Site</legend>
-{{ forms.render(site_form) }}
-<p><input type="Submit" value="Save Site"></p>
-</fieldset>
-</form>
-
-
-<form action="/visit" method="POST">
-<fieldset>
-<legend>Add A Visit</legend>
-{{ forms.render(visit_form) }}
-<p><input type="Submit" value="Save Visit"></p>
-</fieldset>
-</form>
+<p>Welcome stranger! If you are new, come on and <a href="{{url_for('users.register')}}">register with us</a>.
+If you have been here before then why not <a href="{{url_for('users.login')}}">sign in</a>?</p>
 {% endblock content %}
