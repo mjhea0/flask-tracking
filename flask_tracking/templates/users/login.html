@@ -3,7 +3,7 @@
 {% block title %}Log into Flask Tracking!{% endblock %}
 {% block content %}
 {{super()}}
-<form action="{{url_for('users.login')}}" method="POST">
+<form action="{{ url_for('users.login', next=request.args.get('next', '')) }}" method="POST">
 {{ forms.render(form) }}
 <p><input type="Submit" value="Sign In"></p>
 </form>

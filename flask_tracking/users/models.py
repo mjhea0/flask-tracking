@@ -34,17 +34,19 @@ class User(UserMixin, CRUDMixin, db.Model):
     def is_valid_password(self, password):
         """Ensure that the provided password is valid.
 
-        This function should be preferred over ``User.password == password``
-        in a SQLAlchemy query because this function properly compares all
+        We are using this instead of a ``sqlalchemy.types.TypeDecorator``
+        (which would let us write ``User.password == password`` and have the incoming
+        ``password`` be automatically hashed in a SQLAlchemy query)
+        because ``compare_digest`` properly compares **all***
         the characters of the hash even when they do not match in order to
-        avoid side-channel attacks of the timing oracle variety."""
+        avoid timing oracle side-channel attacks."""
         new_hash = self._hash_password(password)
         return compare_digest(new_hash, self._password)
 
     def _hash_password(self, password):
         pwd = password.encode("utf-8")
         salt = bytes(self._salt)
-        buff = pbkdf2_hmac('sha1', pwd, salt, iterations=100000)
+        buff = pbkdf2_hmac("sha512", pwd, salt, iterations=100000)
         return bytes(buff)
 
     def __repr__(self):

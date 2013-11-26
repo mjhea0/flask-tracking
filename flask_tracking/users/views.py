@@ -13,6 +13,8 @@ def login():
     if form.validate_on_submit():
         login_user(form.user)
         flash("Logged in successfully.")
+        # There's a subtle security hole in this code, which we will be fixing in our next article.
+        # Don't use this exact pattern in anything important.
         return redirect(request.args.get("next") or url_for("tracking.index"))
     return render_template('users/login.html', form=form)
 

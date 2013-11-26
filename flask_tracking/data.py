@@ -13,6 +13,14 @@ class CRUDMixin(object):
         instance = cls(**kwargs)
         return instance.save(commit=commit)
 
+    @classmethod
+    def get(cls, id):
+        return cls.query.get(id)
+
+    @classmethod
+    def get_or_404(cls, id):
+        return cls.query.get_or_404(id)
+
     def update(self, commit=True, **kwargs):
         for attr, value in kwargs.iteritems():
             setattr(self, attr, value)

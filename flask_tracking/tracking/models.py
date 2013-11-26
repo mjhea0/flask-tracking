@@ -24,8 +24,8 @@ class Visit(CRUDMixin, db.Model):
     url = db.Column(db.String)
     ip_address = db.Column(db.String)
     location = db.Column(db.String)
-    latitude = db.Column(db.String)
-    longitude = db.Column(db.String)
+    latitude = db.Column(db.Numeric)
+    longitude = db.Column(db.Numeric)
     site_id = db.Column(db.Integer, db.ForeignKey('tracking_site.id'))
 
     def __repr__(self):

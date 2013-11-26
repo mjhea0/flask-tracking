@@ -4,7 +4,7 @@
 {% block title %}Available Sites{% endblock %}
 {% block content %}
 {{super()}}
-<form action="{{url_for('tracking.add_site')}}" method="POST">
+<form action="{{url_for('tracking.view_sites')}}" method="POST">
 <fieldset>
 <legend>Add A Site</legend>
 {{ forms.render(form) }}
