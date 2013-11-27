@@ -79,7 +79,7 @@ Then we can update `tracking.models` to use `from flask_tracking.data import db`
 
 ## Users
 
-Now users need to be able to sign up for an account, manage their account, and log in and out. There could be more user-related functionality (especially around permissions) but to keep things clear we will stick with these basics.
+Now that we have split up our application into separate packages of related functionality, let's start working on the `users` package. Users need to be able to sign up for an account, manage their account, and log in and out. There could be more user-related functionality (especially around permissions) but to keep things clear we will stick with these basics.
 
 ### Enlisting help
 
@@ -302,6 +302,7 @@ def logout():
 And import and register them with our application object:
 
 ```python
+# flask_tracking/__init__.py
 from .users.views import users
 
 # ...
@@ -406,8 +407,6 @@ class CRUDMixin(object):
         return commit and db.session.commit()
 ```
 
-> When I built this application for the first time I noticed that I was re-implementing a lot of the same functionality across all the models. Instead of writing the same (or similar) code three times and then having to maintain it in all three spots it makes sense to break it out into its own class that the models can inherit from. This way if I need to change something in the future I only have to change it in one place. 
-
 `CRUDMixin` provides us with an easier way of handling the four most common model operations (Create, Read, Update, and Delete):
 
 ```python
@@ -434,13 +433,13 @@ we can then use the much clearer:
 user = User.create(**form.data)
 ```
 
-call in our views. This makes it easier to reason about what our code is doing and makes it much easier to refactor (since each piece of code deals with less).  We can also update our `tracking` package's code to make use of the same methods.
+call in our views. This makes it easier to reason about what our code is doing and makes it much easier to refactor (since each piece of code deals with fewer concerns).  We can also update our `tracking` package's code to make use of the same methods.
 
 ### Templates
 
 In Part I, we skipped reviewing our templates to save time.  Let's take a couple of minutes now and review the more interesting parts of what we are using to render our HTML.
 
-Later on, we will break these all up into a RESTful interface. Instead of having Python/Flask/Jinja serve up a pre-formatted page we will use a JavaScript MVC framework to handle the front-end and make requests to the backend to fetch the necessary data. The client will then send requests to the server to make/register new sites and be in charge of updating the views when new sites/visits are created. The views would then be responsible for the REST interface. 
+Later on, we might break these all up into a RESTful interface. Instead of having Python/Flask/Jinja serve up a pre-formatted page we could use a JavaScript MVC framework to handle the front-end and make requests to the backend to fetch the necessary data. The client would then send requests to the server to make/register new sites and be in charge of updating the views when new sites and visits are created. The views would then be responsible for the REST interface.
 
 That said, since we are focusing on Flask, we will use Jinja to serve up the page for now.
 
@@ -486,7 +485,7 @@ Using it is as simple as:
 </form>
 ```
     
-Instead of writing the same form html over and over again we can just use `form.render` to automatically generate the boilerplate html for each field in our forms. This way all of our forms will look and function in the same way and if we ever have to change them we only have to do it in once place. **Don't Repeat Yourself** makes for very clean code.
+Instead of writing the same form HTML over and over again we can just use `form.render` to automatically generate the boilerplate HTML for each field in our forms. This way all of our forms will look and function in the same way and if we ever have to change them we only have to do it in once place. **Don't Repeat Yourself** makes for very clean code.
 
 ## Enabling cross-site request tracking
 
