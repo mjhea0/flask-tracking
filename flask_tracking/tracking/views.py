@@ -68,8 +68,6 @@ def add_visit(site_id=None):
 @tracking.route("/sites", methods=("GET", "POST"))
 @login_required
 def view_sites():
-    query = Site.query.filter(Site.user_id == current_user.id)
-    data = query_to_list(query)
     form = SiteForm()
 
     if form.validate_on_submit():
@@ -77,6 +75,8 @@ def view_sites():
         flash("Added site")
         return redirect(url_for(".view_sites"))
 
+    query = Site.query.filter(Site.user_id == current_user.id)
+    data = query_to_list(query)
     results = []
 
     try:

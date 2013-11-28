@@ -21,5 +21,12 @@ def get_geodata(ip):
         raise ValueError('Invalid IPv4 format')
 
     url = FREE_GEOIP_URL.format(ip)
-    response = urlopen(url).read()
-    return loads(response)
+    data = {}
+
+    try:
+        response = urlopen(url).read()
+        data = loads(response)
+    except Exception:
+        pass
+
+    return data

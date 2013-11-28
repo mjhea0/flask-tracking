@@ -312,20 +312,6 @@ app.register_blueprint(users)
 
 Notice the call to `load_user` inside of our `login` view. `Flask-Login` requires us to call this function in order to activate our user's session (which it will manage for us).
 
-We will also add the `@login_required` decorator to every view in our `tracking.views` module except for the `add_visit` view (which we want people to be able to hit without logging in) and filter the sites we display to limit them to the current user:
-
-```python
-# flask_tracking/tracking/views.py
-@tracking.route("/site/<int:site_id>")
-@login_required
-def view_site_visits(site_id=None):
-    site = Site.query.get_or_404(site_id)
-    if not site.user_id == current_user.id:
-        abort(401)
-
-# ... etc. ...
-```
-
 One last thing to look at is our `users/login.html` template:
 
 ```html
@@ -487,22 +473,21 @@ Using it is as simple as:
     
 Instead of writing the same form HTML over and over again we can just use `form.render` to automatically generate the boilerplate HTML for each field in our forms. This way all of our forms will look and function in the same way and if we ever have to change them we only have to do it in once place. **Don't Repeat Yourself** makes for very clean code.
 
-## Enabling cross-site request tracking
+## Refactoring the tracking application
 
 Now that we have all that set up properly, let's go back and refactor the meat of the application: *the request tracking*. 
 
-Request tracking works in a simple way. We generate a snippet of JavaScript and HTML that a user can embed on the page(s) they want tracked. When someone loads that page it sends a request to our application, which we store. We now know that someone visited, what ip address (and perhaps the location) they visited from, when they visited and what they did while they visited. This is powerful information. We can use this information to figure out what features to focus on, which features aren't being used, and where most of are users are from, etc.
+In Part I, we built the skeleton of a request tracker.  Sites were created on the index page and anyone could view *all* the available sites. As long as the end user sent all the information themselves, Flask-Tracking would store it happily. Now, we have users, so we want to filter the list of sites.  Additionally, it would be good if our application could derive some of the data from the visitor, rather than asking the end user of our application to derive it all for themselves.
 
-I've elected to use `sites_view` for both displaying sites and their visits and for registering sites to demonstrate that a view can perform more than just one bit of functionality. It's really up to you how you want to break up your application. I've decided that instead of having a user go to a separate page that's sole function is to register sites, they can just do that in the same place the information is displayed.
+### Filtering sites
 
-Let's start with `view_sites`:
+Let's start with site list:
 
 ```python
+# flask_tracking/tracking/views.py
 @tracking.route("/sites", methods=("GET", "POST"))
 @login_required
 def view_sites():
-    query = Site.query.filter(Site.user_id == current_user.id)
-    data = query_to_list(query)
     form = SiteForm()
 
     if form.validate_on_submit():
@@ -510,6 +495,8 @@ def view_sites():
         flash("Added site")
         return redirect(url_for(".view_sites"))
 
+    query = Site.query.filter(Site.user_id == current_user.id)
+    data = query_to_list(query)
     results = []
 
     try:
@@ -535,11 +522,17 @@ def _make_link(site_id):
     return _LINK.format(url=url, name=site_id)
 ```
 
-The `@login_required` decorator is provided by `Flask-Login`. Anyone who isn't logged in who tries to go to `/sites/` will be redirected to the login page. If the user has submitted the form to add a new site then `form.validate_on_submit` will run. We redirect back to ourselves after saving the new site to prevent a page refresh causing the user to attempt to add the site twice. (This is called the Post-Redirect-Get pattern).
+Starting from the top, the `@login_required` decorator is provided by `Flask-Login`. Anyone who isn't logged in who tries to go to `/sites/` will be redirected to the login page. Next, we are checking to see if the user is currently adding a new site (`form.validate_on_submit` checks to see if `request.method` is POST and validates the form - if either of the preconditions fails, the method returns `False`, otherwise it returns `True`).  If the user is creating a new site, we create a new site (using the method defined by our `CRUDMixin`, so if you are making changes to the code yourself, you will want to make sure that `Site` and `Visit` both inherit from `CRUDMixin`) and redirect back to the same page. We redirect back to ourselves after saving the new site to prevent a page refresh causing the user to attempt to add the site twice. (This is called the Post-Redirect-Get pattern).
 
 If you are not sure what I mean by that, try commenting out the `return redirect(url_for(".view_sites"))`, then submit the "Add a Site" form and when the page reloads push `F5` to refresh your browser.  Try that same exercise after restoring the redirect. (When the redirect is removed the browser will ask if you really want to submit the form data again - the last request that the browser made is the POST that created the new site.  With the redirect, the last request that the browser made is the GET request that reloaded the `view_sites` page).
 
-`add_visit`, meanwhile, is a bit more complex (although it is mostly mapping code):
+Continuing on, if the user is not creating a new site (or if the provided data has errors) we are querying our database to look up all of the sites that were created by the currently logged in user. We then slightly transform our list, turning the database ID into an HTML link for each of our non-header rows. This use of an "inline" template is good for fast prototyping, when you do not yet have a good idea of whether the template pattern is worth "macro-izing".  In our case, this is the only view we have with a table with an action link, so we use the inline template technique to demonstrate another way of doing things. 
+
+It is worth noting that we have elected to use `sites_view` for both displaying sites and their visits and for registering sites. It's really up to you how you want to break up your application.  Having a `view_sites` and an `add_site` view, where the former is only accessible to GET requests and the latter to POST is also a valid technique.  Whichever technique feels clearer to you is the one you should prefer - just make sure you are consistent.
+
+### Deriving data from visitors
+
+`add_visit`, meanwhile, is now a bit more complex (although it is mostly mapping code):
 
 ```python
 from flask import request
@@ -584,11 +577,11 @@ def add_visit(site_id=None):
     return jsonify(errors=form.errors), 400
 ```
 
-We do some explicit mapping for data that we can derive on the server (the browser, the IP Address) and then we construct our `VisitForm`.  We disable CSRF protection because we actually *want* users to be able to make requests to this endpoint from elsewhere. Finally, we know what site this request is for because of the `<int:site_id>` parameter that we have set to the URL. 
+We have removed the ability for users to manually add visits from our website via a form (and so we have also removed the second route on `add_visit`).  We now do explicit mapping for data that we can derive on the server (the browser, the IP Address) and then we construct our `VisitForm` passing in those mapped values directly.  The IP address we pull from `access_route` in case we are behind a proxy since then `remote_addr` will contain the IP address of the last proxy, which is not what we want at all. We disable CSRF protection because we actually *want* users to be able to make requests to this endpoint from elsewhere. Finally, we know what site this request is for because of the `<int:site_id>` parameter that we have set to the URL. 
 
 This is not a perfect implementation of this idea. We do not have any way of verifying that the request is a licit request from our tracking beacons. Someone could modify the JavaScript code or submit modified requests from another server entirely and we would happily save it. This is simple and it easy to implement. But you probably should not use this code in a production environment.
 
-`get_geodata(ip_address)` calls a script that queries `http://freegeoip.net/` this is so we can get a rough idea of where the requests are coming from:
+`get_geodata(ip_address)` queries `http://freegeoip.net/` so we can get a rough idea of where the requests are coming from:
 
 ```python
 from json import loads
@@ -614,78 +607,72 @@ def get_geodata(ip):
         raise ValueError('Invalid IPv4 format')
 
     url = FREE_GEOIP_URL.format(ip)
-    response = urlopen(url).read()
-    return loads(response)
+    data = {}
+
+    try:
+        response = urlopen(url).read()
+        data = loads(response)
+    except Exception:
+        pass
+
+    return data
 ```
 
 Save this as `geodata.py` in the `tracking` directory. 
 
 Return to the view, all this view is doing is copying info from the request down and storing it in the database. It responds to the request with an HTTP 204 (No Content) response. This tells the browser that the request succeeded, but we do not have to spend any extra time generating content that the end-user will not see.
 
-Remaining Files
---------------
+### Seeing the visits
 
-We also need to setup a configuration file, `config.py`:
+We also add authentication to the Visits view for each individual site:
 
-    import os
-    _basedir = os.path.abspath(os.path.dirname(__file__))
+```python
+@tracking.route("/sites/<int:site_id>")
+@login_required
+def view_site_visits(site_id=None):
+    site = Site.get_or_404(site_id)
+    if not site.user_id == current_user.id:
+        abort(401)
 
-    DEBUG = False
+    query = Visit.query.filter(Visit.site_id == site_id)
+    data = query_to_list(query)
+    return render_template("tracking/site.html", visits=data, site=site)
+```
 
-    ADMINS = frozenset(['youremail@yourdomain.com'])
-    SECRET_KEY = 'SecretKeyForSessionSigning'
+The only real change here is that if the user is logged in, but did not create the site, they will see an error page, rather than the visits.
 
-    THREADS_PER_PAGE = 8
+### Providing a means of tracking visitors
 
-    CSRF_ENABLED = True
-    CSRF_SESSION_KEY = "somethingimpossibletoguess"
+Finally, we want to provide users a snippet of code that they can place on their website that will automatically record visits:
 
-    RECAPTCHA_USE_SSL = False
-    RECAPTCHA_PUBLIC_KEY = 'blahblahblahblahblahblahblahblahblah'
-    RECAPTCHA_PRIVATE_KEY = 'blahblahblahblahblahblahprivate'
-    RECAPTCHA_OPTIONS = {'theme': 'white'}
-    
-You can read more about this file [here](http://flask.pocoo.org/docs/config/).
+```html
+{# flask_tracking/templates/tracking/site.html #}
+{% block content %}
+{{ super() }}
+<p>To track visits to this site, simple add the following snippet to the pages that you wish to track:</p>
+<code><pre>
+&lt;script>
+(function() {
+    var img = new Image();
+    img.src = "{{ url_for('tracking.add_visit', site_id=site.id, event='PageLoad', _external=true) }}";
+})();
+&lt;/script>
+&lt;noscript>
+&lt;img src="{{ url_for('tracking.add_visit', site_id=site.id, event='PageLoad', _external=true) }}" width="1" height="1" />
+&lt;/noscript>
+</pre></code>
+<h2>Visits for {{ site.base_url }}</h2>
+<table>
+{{ tables.render(visits) }}
+</table>
+{% endblock content %}
+```
 
-The `run.py` starts the server:
+## Wrapping Up
 
-    from app import app
-    app.run(debug=True)
+You can check out a working copy of the app [here](http://flasktracking.herokuapp.com/). Sign up and register some sites, embed the tracking snippet and then see it rack up visits. The code for the application can be found [here][repository].
 
-`shell.py` is used for running an interactive shell:
-
-    #!/usr/bin/env python
-    import os
-    import readline
-    from pprint import pprint
-
-    from flask import *
-    from app import *
-
-    os.environ['PYTHONINSPECT'] = 'True'
-    
-You can find more information on this file [here](http://flask.pocoo.org/snippets/23/).
-
-
-Running the App
------------
-
-With your database setup, go ahead and run your app:
-
-    $ python run.py
-
-<br/>
-
-Wrapping Up
------------
-
-This week we put what we learned last time to work. We made a functioning web tracker and user framework. 
-
-Some of the main design ideas were to **not repeat code** (DRY) and **break up our ideas down by functionality and then implement them**. 
-
-You can check out a working copy of the app [here](http://flasktracking.herokuapp.com/). Sign up and register some sites, embed the jQuery and then see it rack up visits. The code for the app can be found [here](https://github.com/mjhea0/flask-tracking).
-
-**Next time I'll cover writing tests for your application, debugging errors, and logging.**
+**Next time we will cover writing tests for your application, debugging errors, and logging.**
 
   [flask]: http://flask.pocoo.org/
   [repository]: https://github.com/mjhea0/flask-tracking
