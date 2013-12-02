@@ -429,6 +429,8 @@ Later on, we might break these all up into a RESTful interface. Instead of havin
 
 That said, since we are focusing on Flask, we will use Jinja to serve up the page for now.
 
+#### Layout
+
 First, look at [`layout.html`][repo:part-2:layout] (I am leaving the majority of the code out of this article to save space, but I am providing links to the full code):
 
 ```html
@@ -438,6 +440,8 @@ First, look at [`layout.html`][repo:part-2:layout] (I am leaving the majority of
 ```
 
 This snippet showcases two of my favorite tricks - first, we have a block (`title`) that contains a variable so we can set this value from our `render_template` calls (so we don't need to create a whole new template just to change a title).  Second, we are *re-using* the contents of the block for our header with the special `self` variable.  This means, when we set `title` (either in a child template or via a keyword argument to `render_template`) the text we provide will show up *both* in the browser's title bar and in the `h1` tag.
+
+#### Form management
 
 The other piece of our templating structure that merits a look is [our macros][repo:part-2:macros]. For those of you coming from a Django background, Jinja's macros are Django's `tag`s on steroids.  Our `form.render` macro, for example, makes it incredibly easy to add a form to one of our templates:
 
@@ -639,7 +643,7 @@ def view_site_visits(site_id=None):
     return render_template("tracking/site.html", visits=data, site=site)
 ```
 
-The only real change here is that if the user is logged in, but did not create the site, they will see an error page, rather than the visits.
+The only real change here is that if the user is logged in, but does not own the site, they will see an authorization error page, rather than being able to view the visits for the site.
 
 ### Providing a means of tracking visitors
 
@@ -668,11 +672,23 @@ Finally, we want to provide users a snippet of code that they can place on their
 {% endblock content %}
 ```
 
+Our snippet is very simple - when the page loads we create a new image and set its source to be our tracking URL.  The browser will *immediately* load the image specified (which will be nothing at all) and we will record a tracking hit in our application.  We also have a `<noscript>` block for those people who are visiting us without JavaScript enabled.  (If we really wanted to keep up with the times, we could also update our server-side code to check for the `Do Not Track` header and only record the visit if the user has opted into tracking.)
+
 ## Wrapping Up
 
 You can check out a working copy of the app [here](http://flasktracking.herokuapp.com/). Sign up and register some sites, embed the tracking snippet and then see it rack up visits. The code for the application can be found [here][repository].
 
-**Next time we will cover writing tests for your application, debugging errors, and logging.**
+That's it for this post. We now have user accounts, and the beginnings of an easy to use client-side API for tracking. We still need to finalize our client-side API, style the application and add reports.
+
+In Part III we'll explore writing tests for our application, logging, and debugging errors. 
+
+In Part IV we'll do some Test Driven Development to enable our application to accept payments and display simple reports. 
+
+In Part V we will write a RESTful JSON API for others to consume.
+
+In Part VI we will cover automating deployments (on Heroku) with Fabric and basic A/B Feature Testing.
+
+Finally, in Part VII we will cover preserving your application for the future with documentation, code coverage and quality metric tools.
 
   [flask]: http://flask.pocoo.org/
   [repository]: https://github.com/mjhea0/flask-tracking
