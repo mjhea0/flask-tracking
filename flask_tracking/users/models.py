@@ -1,6 +1,7 @@
 from random import SystemRandom
 
 from backports.pbkdf2 import pbkdf2_hmac, compare_digest
+from flask import current_app
 from flask.ext.login import UserMixin
 from sqlalchemy.ext.hybrid import hybrid_property
 
@@ -46,7 +47,8 @@ class User(UserMixin, CRUDMixin, db.Model):
     def _hash_password(self, password):
         pwd = password.encode("utf-8")
         salt = bytes(self._salt)
-        buff = pbkdf2_hmac("sha512", pwd, salt, iterations=100000)
+        rounds = current_app.config.get("HASH_ROUNDS", 100000)
+        buff = pbkdf2_hmac("sha512", pwd, salt, iterations=rounds)
         return bytes(buff)
 
     def __repr__(self):

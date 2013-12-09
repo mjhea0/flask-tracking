@@ -18,4 +18,7 @@ class VisitForm(Form):
     event = fields.StringField()
     url = fields.StringField(validators=[Required()])
     ip_address = fields.StringField()
+    location = fields.StringField()
+    latitude = fields.StringField()
+    longitude = fields.StringField()
     site = QuerySelectField(validators=[Required()], query_factory=lambda: Site.query.all())

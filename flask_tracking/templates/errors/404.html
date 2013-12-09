@@ -1,0 +1,6 @@
+{% extends "layout.html" %}
+{% block title %}I am afraid that does not exist (404){% endblock %}
+{% block content %}
+<p>We are very sorry, but the URL you requested does not have any content associated with it.</p>
+<p>May we suggest that you <a href="{{ url_for("tracking.index") }}">return to the home page</a>?</p>
+{% endblock content %}

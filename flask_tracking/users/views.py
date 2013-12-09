@@ -1,5 +1,5 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
-from flask.ext.login import login_required, login_user, logout_user
+from flask.ext.login import login_user, logout_user
 
 from .forms import LoginForm, RegistrationForm
 from .models import User
@@ -30,7 +30,6 @@ def register():
 
 
 @users.route('/logout/')
-@login_required
 def logout():
     logout_user()
     return redirect(url_for('tracking.index'))

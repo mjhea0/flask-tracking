@@ -1,0 +1,7 @@
+{% extends "layout.html" %}
+{% block title %}Unfortunately, something has gone wrong! ({{ code }}){% endblock %}
+{% block content %}
+<h2>{{ description }} (That's an error code #{{ code }})</h2>
+<p>We are very sorry, but something has gone amiss.  We will look into it as soon as we can!</p>
+<p><a href="{{ url_for("tracking.index") }}">Go back</a></p>
+{% endblock content %}
